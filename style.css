@@ -1,0 +1,14 @@
+body{
+    background-color: black;
+    background-image: url("icon.jpg");
+    background-size: cover;     
+    background-repeat: no-repeat; 
+    background-position: center; 
+}
+#heaer{
+    display: flex;
+    padding: 10px;
+    justify-content: space-around;
+    background-color: rgba(202, 220, 230, 0.9);
+    font-size: 10px;
+}
