@@ -74,6 +74,7 @@ function handleAuth() {
     const email = document.getElementById('authEmail').value;
     const password = document.getElementById('authPassword').value;
     const name = document.getElementById('registerName').value;
+    const course = document.getElementById('registerCourse') ? document.getElementById('registerCourse').value : '';
     document.getElementById('userName').textContent = name;
     if (!email || !password) {
         alert('Please fill in all fields');
@@ -84,10 +85,15 @@ function handleAuth() {
             alert('Please enter your name');
             return;
         }
+        if (!course) {
+            alert('Please select your course');
+            return;
+        }
     }
     appState.currentUser = {
         name: appState.authMode === 'register' ? name : 'Student',
         email: email,
+        course: appState.authMode === 'register' ? course : null
     };
     
     const authScreen = document.getElementById('authScreen');
@@ -117,6 +123,7 @@ function logout() {
     document.getElementById('authEmail').value = '';
     document.getElementById('authPassword').value = '';
     document.getElementById('registerName').value = '';
+    if (document.getElementById('registerCourse')) document.getElementById('registerCourse').value = '';
 }
 // NAVIGATION
 function switchTab(tabName) {
