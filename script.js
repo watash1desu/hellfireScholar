@@ -88,7 +88,6 @@ function handleAuth() {
     appState.currentUser = {
         name: appState.authMode === 'register' ? name : 'Student',
         email: email,
-        course: appState.authMode === 'register' ? course : 'General Course'
     };
     
     const authScreen = document.getElementById('authScreen');
@@ -98,7 +97,6 @@ function handleAuth() {
     appScreen.style.display = 'block';
     
     document.getElementById('userName').textContent = appState.currentUser.name;
-    document.getElementById('userCourse').textContent = appState.currentUser.course;
     
     updateDashboard();
     renderNotes();
@@ -119,7 +117,6 @@ function logout() {
     document.getElementById('authEmail').value = '';
     document.getElementById('authPassword').value = '';
     document.getElementById('registerName').value = '';
-    document.getElementById('courseSelect').value = '';
 }
 // NAVIGATION
 function switchTab(tabName) {
