@@ -118,75 +118,66 @@ function switchAuthMode(mode) {
 }
 
 async function handleAuth() {
-  const email = document.getElementById('authEmail').value.trim();
-  const password = document.getElementById('authPassword').value;
-  const name = document.getElementById('registerName').value.trim();
-  const course = document.getElementById('registerCourse') ? document.getElementById('registerCourse').value : '';
+    const email = document.getElementById('authEmail').value;
+    const password = document.getElementById('authPassword').value;
+    const name = document.getElementById('registerName').value;
+    const course = document.getElementById('registerCourse') ? document.getElementById('registerCourse').value : '';
 
-  if (!email || !password) {
-    alert('Please fill in all fields');
-    return;
-  }
+    if (!email || !password) {
+        alert('Please fill in all fields');
+        return;
+    }
 
-  // choose endpoint based on mode
-  try {
-    let url = '';
-    let payload = {};
+    let endpoint = '';
+    let body = {};
 
     if (appState.authMode === 'register') {
-      if (!name) { alert('Please enter your name'); return; }
-      if (!course) { alert('Please select your course'); return; }
+        if (!name) return alert('Please enter your name');
+        if (!course) return alert('Please select your course');
 
-      url = 'http://localhost:5000/api/auth/register';
-      payload = { name, email, password, course }; // backend register expects name,email,password
+        endpoint = 'http://localhost:5000/api/auth/register';
+        body = { name, email, password };
     } else {
-      url = 'http://localhost:5000/api/auth/login';
-      payload = { email, password };
+        endpoint = 'http://localhost:5000/api/auth/login';
+        body = { email, password };
     }
 
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+    try {
+        const res = await fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        });
 
-    const data = await res.json();
+        const data = await res.json();
 
-    if (!res.ok) {
-      // show error returned by backend
-      alert(data.error || data.message || 'Authentication failed');
-      return;
+        if (!res.ok) {
+            alert(data.error || 'Authentication failed');
+            return;
+        }
+
+        // Save JWT token
+        localStorage.setItem("token", data.token);
+
+        // Save real backend user
+        appState.currentUser = data.user;
+
+        document.getElementById('userName').textContent = data.user.name;
+
+        // Switch screens
+        document.getElementById('authScreen').style.display = 'none';
+        document.getElementById('appScreen').style.display = 'block';
+
+        updateDashboard();
+        renderNotes();
+        renderSyllabus();
+        renderAssignments();
+        renderAttendance();
+
+    } catch (err) {
+        alert("Network error");
+        console.error(err);
     }
-
-    // Backend returns token and user object
-    const token = data.token;
-    if (!token) {
-      alert('No token returned from server');
-      return;
-    }
-
-    // Save token and optional user name locally
-    localStorage.setItem('token', token);
-    localStorage.setItem('userName', data.user?.name || name || '');
-
-    // switch screens to app
-    document.getElementById('authScreen').style.display = 'none';
-    document.getElementById('appScreen').style.display = 'block';
-
-    // fetch and show user info from backend
-    await fetchAndRenderUser();
-
-    // render initial app state
-    updateDashboard();
-    renderNotes();
-    renderSyllabus();
-    renderAssignments();
-    renderAttendance();
-
-  } catch (err) {
-    console.error('Auth error', err);
-    alert('Network or server error');
-  }
 }
 
 
