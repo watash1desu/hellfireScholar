@@ -535,6 +535,58 @@ header {
     margin-bottom: 16px;
 }
 
+.attendance-buttons {
+    display: flex;
+    padding: 5px;
+    padding-top: 15px;
+    padding-bottom: 10px;
+    gap: 12px;
+    align-items: center;
+}
+
+.btn-present, .btn-absent {
+    border: none;
+    color: #fff;
+    padding: 8px 14px;
+    font-weight: 700;
+    border-radius: 10px;
+    cursor: pointer;
+    min-width: 110px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 15px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 6px 18px rgba(2,6,23,0.2);
+}
+
+.btn-present {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.btn-present:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(16,185,129,0.15);
+}
+
+.btn-absent {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.btn-absent:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(239,68,68,0.15);
+}
+
+.attendance-subject-card {
+    margin-bottom: 16px;
+    padding: 18px;
+    border-radius: 12px;
+    border: 1px solid #273244;
+    background: #0b1220;
+}
+
 .attendance-left {
     flex: 1;
 }
