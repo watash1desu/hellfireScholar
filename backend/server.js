@@ -11,7 +11,12 @@ const notesRoutes = require('./routes/notes');
 const app = express();
 
 // Middlewares
-app.use(cors());
+// Allow any origin (development). In production restrict this.
+app.use(cors({
+  origin: "*",
+  methods: "GET,POST,DELETE"
+}));
+
 app.use(express.json());
 
 // Serve uploaded files statically at /uploads
@@ -43,7 +48,3 @@ mongoose.connect(MONGO_URI, {
     console.error('MongoDB connection error:', err && err.message ? err.message : err);
     process.exit(1);
   });
-app.use(cors({
-  origin: "*",
-  methods: "GET,POST,DELETE",
-}));
