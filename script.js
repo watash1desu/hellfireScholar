@@ -58,7 +58,7 @@ async function fetchAndRenderUser() {
   }
 
   try {
-    const res = await fetch('http://localhost:5000/api/auth/me', {
+    const res = await fetch('http://localhost:4000/api/auth/me', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -135,10 +135,10 @@ async function handleAuth() {
         if (!name) return alert('Please enter your name');
         if (!course) return alert('Please select your course');
 
-        endpoint = 'http://localhost:5000/api/auth/register';
+        endpoint = 'http://localhost:4000/api/auth/register';
         body = { name, email, password };
     } else {
-        endpoint = 'http://localhost:5000/api/auth/login';
+        endpoint = 'http://localhost:4000/api/auth/login';
         body = { email, password };
     }
 

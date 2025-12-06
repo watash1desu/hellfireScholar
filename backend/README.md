@@ -17,7 +17,7 @@ npm install
 ```bash
 npm run dev
 ```
-5. Server will run on `http://localhost:5000` by default.
+5. Server will run on `http://localhost:4000` by default.
 
 
 ## Endpoints
