@@ -46,6 +46,16 @@ body {
     font-size: 32px;
 }
 
+.H{
+    width: 100px;       
+    height: 65px;
+    border-radius: 50%;
+    object-fit: cover;  
+    display: block;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
 .auth-title {
     font-size: 28px;
     font-weight: 700;
