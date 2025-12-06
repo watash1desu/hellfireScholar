@@ -118,66 +118,75 @@ function switchAuthMode(mode) {
 }
 
 async function handleAuth() {
-    const email = document.getElementById('authEmail').value;
-    const password = document.getElementById('authPassword').value;
-    const name = document.getElementById('registerName').value;
-    const course = document.getElementById('registerCourse') ? document.getElementById('registerCourse').value : '';
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const name = document.getElementById('registerName').value.trim();
+  const course = document.getElementById('registerCourse') ? document.getElementById('registerCourse').value : '';
 
-    if (!email || !password) {
-        alert('Please fill in all fields');
-        return;
+  if (!email || !password) {
+    alert('Please fill in all fields');
+    return;
+  }
+
+  let endpoint = '';
+  let body = {};
+
+  if (appState.authMode === 'register') {
+    if (!name) return alert('Please enter your name');
+    if (!course) return alert('Please select your course');
+
+    endpoint = 'http://localhost:5000/api/auth/register';
+    body = { name, email, password }; // backend expects name,email,password
+  } else {
+    endpoint = 'http://localhost:5000/api/auth/login';
+    body = { email, password };
+  }
+
+  try {
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      alert(data.error || data.message || 'Authentication failed');
+      return;
     }
 
-    let endpoint = '';
-    let body = {};
+    // Save JWT token (for further API calls)
+    if (data.token) localStorage.setItem("token", data.token);
 
-    if (appState.authMode === 'register') {
-        if (!name) return alert('Please enter your name');
-        if (!course) return alert('Please select your course');
-
-        endpoint = 'http://localhost:5000/api/auth/register';
-        body = { name, email, password };
-    } else {
-        endpoint = 'http://localhost:5000/api/auth/login';
-        body = { email, password };
+    // Save backend user to state and localStorage
+    if (data.user) {
+      appState.currentUser = data.user;
+      localStorage.setItem('userName', data.user.name || '');
+      // also keep id handy
+      localStorage.setItem('userId', data.user.id || data.user._id || '');
     }
 
-    try {
-        const res = await fetch(endpoint, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body)
-        });
+    // Update UI
+    document.getElementById('userName').textContent = (data.user && data.user.name) ? data.user.name : 'Student';
 
-        const data = await res.json();
+    // Switch screens
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = 'block';
 
-        if (!res.ok) {
-            alert(data.error || 'Authentication failed');
-            return;
-        }
+    // Fetch server-backed notes and update UI/state
+    await fetchAndRenderNotes();
 
-        // Save JWT token
-        localStorage.setItem("token", data.token);
+    // Render other UI parts
+    updateDashboard();
+    renderSyllabus();
+    renderAssignments();
+    renderAttendance();
 
-        // Save real backend user
-        appState.currentUser = data.user;
-
-        document.getElementById('userName').textContent = data.user.name;
-
-        // Switch screens
-        document.getElementById('authScreen').style.display = 'none';
-        document.getElementById('appScreen').style.display = 'block';
-
-        updateDashboard();
-        renderNotes();
-        renderSyllabus();
-        renderAssignments();
-        renderAttendance();
-
-    } catch (err) {
-        alert("Network error");
-        console.error(err);
-    }
+  } catch (err) {
+    console.error('Auth network error:', err);
+    alert("Network error. Check backend is running and CORS is configured.");
+  }
 }
 
 
@@ -209,6 +218,10 @@ function switchTab(tabName) {
     const sections = document.querySelectorAll('.content-section');
     sections.forEach(section => section.classList.remove('active'));
     document.getElementById(tabName).classList.add('active');
+
+    if (tabName === 'notes') {
+        fetchAndRenderNotes();
+    }
 }
 
 // ============================================
@@ -309,79 +322,262 @@ function renderAttendanceAlerts() {
 // NOTES FUNCTIONS
 // ============================================
 
-function uploadNote() {
-    const title = document.getElementById('noteTitle').value;
-    const subject = document.getElementById('noteSubject').value;
-    const category = document.getElementById('noteCategory').value;
-    const file = document.getElementById('noteFile').files[0];
-    
-    if (!title || !file) {
-        alert('Please fill in all fields');
-        return;
+async function uploadNoteBackend() {
+  const titleEl = document.getElementById('noteTitle');
+  const subjectEl = document.getElementById('noteSubject');
+  const categoryEl = document.getElementById('noteCategory');
+  const fileEl = document.getElementById('noteFile');
+  const uploadBtn = document.querySelector('#uploadNoteModal .btn-primary') || null;
+
+  const title = titleEl ? titleEl.value.trim() : '';
+  const subject = subjectEl ? subjectEl.value : '';
+  const category = categoryEl ? categoryEl.value : '';
+  const file = fileEl && fileEl.files ? fileEl.files[0] : null;
+
+  if (!title || !subject || !category || !file) {
+    alert("Please fill in all fields");
+    return;
+  }
+
+  // disable upload button while uploading
+  if (uploadBtn) {
+    uploadBtn.disabled = true;
+    uploadBtn.style.opacity = '0.6';
+    uploadBtn.textContent = 'Uploading...';
+  }
+
+  const formData = new FormData();
+  formData.append("title", title);
+  formData.append("subject", subject);
+  formData.append("category", category);
+  formData.append("file", file);
+
+  let postResponse = null;
+  try {
+    const token = localStorage.getItem("token") || '';
+    console.log('upload - token present?', !!token);
+
+    postResponse = await fetch("http://localhost:5000/api/notes/upload", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      },
+      body: formData
+    });
+
+    // attempt to parse JSON safely
+    const text = await postResponse.text().catch(() => '');
+    let json = {};
+    try { json = text ? JSON.parse(text) : {}; } catch (e) {
+      json = { rawText: text };
     }
-    
-    const newNote = {
-        id: Date.now(),
-        title: title,
-        subject: subject,
-        category: category,
-        fileName: file.name,
-        uploadDate: new Date().toLocaleDateString()
-    };
-    
-    appState.notes.push(newNote);
-    
-    document.getElementById('noteTitle').value = '';
-    document.getElementById('noteFile').value = '';
-    
-    closeModal('uploadNote');
-    renderNotes();
+
+    console.log('POST /api/notes/upload response status:', postResponse.status, 'body:', json);
+
+    if (!postResponse.ok) {
+      const errMsg = json.error || json.message || `Upload failed (status ${postResponse.status})`;
+      alert(errMsg);
+      return;
+    }
+
+    // success from server
+    alert("Upload successful!");
+
+  } catch (err) {
+    console.error('Network or fetch error during upload:', err);
+    alert("Network error during upload");
+    return;
+  } finally {
+    // restore upload button UI immediately so user can retry if needed
+    if (uploadBtn) {
+      uploadBtn.disabled = false;
+      uploadBtn.style.opacity = '';
+      uploadBtn.textContent = 'Upload';
+    }
+  }
+
+  // after a successful upload, refresh notes safely
+  try {
+    await fetchAndRenderNotes();
+    // keep modal closed AFTER refresh
+    closeModal("uploadNote");
+
+    // clear fields
+    if (titleEl) titleEl.value = '';
+    if (fileEl) fileEl.value = '';
+  } catch (err) {
+    console.error('Error when refreshing notes after upload:', err);
+    // show a specific message but don't re-open modal or switch tabs
+    alert('Upload succeeded but failed to refresh notes list. Check console / server.');
+  }
+}
+
+// call this whenever you want to refresh notes from backend
+async function fetchAndRenderNotes(page = 1, limit = 50) {
+  // build params — ensure trimmed & encoded subject/category
+  const subjectRaw = document.getElementById('notesFilter') ? document.getElementById('notesFilter').value : 'all';
+  const subjectFilter = subjectRaw ? subjectRaw.trim() : 'all';
+
+  const typeFilterElement = document.getElementById('notesTypeFilter');
+  const categoryRaw = typeFilterElement ? typeFilterElement.value : 'all';
+  const categoryFilter = categoryRaw ? categoryRaw.trim() : 'all';
+
+  const params = new URLSearchParams();
+  if (subjectFilter && subjectFilter.toLowerCase() !== 'all') params.append('subject', subjectFilter);
+  if (categoryFilter && categoryFilter.toLowerCase() !== 'all') params.append('category', categoryFilter);
+  params.append('page', page);
+  params.append('limit', limit);
+
+
+  try {
+    const res = await fetch('http://localhost:5000/api/notes?' + params.toString());
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      console.error('Failed to fetch notes', data);
+      // show empty state or keep previous notes
+      appState.notes = [];
+      renderNotesUI();
+      return;
+    }
+
+    // Map backend notes to frontend shape and include uploadedBy for ownership checks
+    appState.notes = (data.notes || []).map(n => ({
+      id: n._id,
+      title: n.title,
+      subject: n.subject,
+      category: n.category,
+      fileName: n.originalName,
+      uploadDate: n.createdAt ? new Date(n.createdAt).toLocaleDateString() : '',
+      url: (n.url && n.url.startsWith('/')) ? ('http://localhost:5000' + n.url) : n.url,
+      tags: n.tags || [],
+      uploadedBy: n.uploadedBy || null
+    }));
+
+    renderNotesUI();
     updateDashboard();
+  } catch (err) {
+    console.error('Error fetching notes:', err);
+    // keep UI friendly
+    appState.notes = [];
+    renderNotesUI();
+  }
 }
 
-function renderNotes() {
-    const notesGrid = document.getElementById('notesGrid');
-    const filterValue = document.getElementById('notesFilter').value;
-    
-    // Filter notes based on selected subject
-    const filteredNotes = filterValue === 'all' 
-        ? appState.notes 
-        : appState.notes.filter(note => note.subject === filterValue);
-    
-    if (filteredNotes.length === 0) {
-        notesGrid.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon">📄</div>
-                <p style="font-size: 18px; color: #94a3b8; margin-bottom: 8px;">No notes found</p>
-                <p style="color: #64748b; font-size: 14px;">Upload notes for ${filterValue === 'all' ? 'any subject' : filterValue}</p>
+// Renders notes from appState.notes into #notesGrid
+function renderNotesUI() {
+  const notesGrid = document.getElementById('notesGrid');
+  if (!appState.notes || appState.notes.length === 0) {
+    notesGrid.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📄</div>
+        <p style="font-size: 18px; color: #94a3b8; margin-bottom: 8px;">No notes found</p>
+        <p style="color: #64748b; font-size: 14px;">Upload notes to get started</p>
+      </div>`;
+    return;
+  }
+
+  // determine logged-in user id (try appState, then localStorage)
+  const loggedInId = (function () {
+    const u = appState.currentUser || {};
+    return String(u.id || u._id || u.userId || localStorage.getItem('userId') || '');
+  })();
+
+  notesGrid.innerHTML = appState.notes.map(note => {
+    // uploadedBy should be present from backend mapping
+    const ownerId = note.uploadedBy ? String(note.uploadedBy) : null;
+    const canDelete = ownerId && loggedInId && ownerId === loggedInId;
+
+    const safeTitle = escapeHtml(note.title || note.fileName || 'Untitled');
+    const safeSubject = escapeHtml(note.subject || '');
+    const safeCategory = escapeHtml(note.category || '');
+    const safeDate = escapeHtml(note.uploadDate || '');
+    const safeUrl = note.url ? escapeHtml(note.url) : '#';
+
+    const tagsHtml = (note.tags || []).slice(0, 6)
+      .map(t => `<span class="badge badge-blue" style="margin-right:6px;">${escapeHtml(t)}</span>`)
+      .join('');
+
+    return `
+      <div class="note-card">
+        <div class="note-header">
+          <div>
+            <div class="note-title">${safeTitle}</div>
+            <div class="note-subject">${safeSubject}</div>
+            <div class="note-tags" style="margin-top:6px;">
+              ${tagsHtml}
             </div>
-        `;
-        return;
-    }
-    
-    notesGrid.innerHTML = filteredNotes.map(note => `
-        <div class="note-card">
-            <div class="note-header">
-                <div>
-                    <div class="note-title">${note.title}</div>
-                    <div class="note-subject">${note.subject}</div>
-                </div>
-                <span class="badge badge-orange">${note.category}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; color: #94a3b8; font-size: 14px; margin-top: 12px;">
-                <span>${note.uploadDate}</span>
-                <button onclick="deleteNote(${note.id})" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 18px;">🗑️</button>
-            </div>
+          </div>
+          <span class="badge badge-orange">${safeCategory}</span>
         </div>
-    `).join('');
+
+        <div style="display:flex;justify-content:space-between;align-items:center;color:#94a3b8;font-size:14px;margin-top:12px;">
+          <span>${safeDate}</span>
+          <div>
+            <a href="${safeUrl}" target="_blank" style="color:#60a5fa; margin-right:10px;" ${safeUrl === '#' ? 'onclick="return false;"' : ''}>Open</a>
+            ${ canDelete ? `<button onclick="deleteNoteBackend('${escapeHtml(note.id)}')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:18px;">🗑️</button>` : '' }
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
-function deleteNote(noteId) {
-    if (confirm('Are you sure you want to delete this note?')) {
-        appState.notes = appState.notes.filter(n => n.id !== noteId);
-        renderNotes();
-        updateDashboard();
+// small helper to avoid HTML injection
+function escapeHtml(str = '') {
+  return String(str).replace(/[&<>"'`=\/]/g, function (s) {
+    return ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','/':'&#x2F;','`':'&#x60;','=':'&#x3D;'
+    })[s];
+  });
+}
+
+async function deleteNoteBackend(noteId) {
+  if (!confirm('Delete this note?')) return;
+
+  // find index & keep a copy for rollback
+  const index = appState.notes.findIndex(n => String(n.id) === String(noteId));
+  if (index === -1) return alert('Note not found in UI');
+
+  const backupNote = appState.notes[index];
+
+  // Optimistic UI: remove locally and re-render immediately
+  appState.notes.splice(index, 1);
+  renderNotesUI();
+  updateDashboard();
+
+  const token = localStorage.getItem('token') || '';
+
+  try {
+    const res = await fetch('http://localhost:5000/api/notes/' + encodeURIComponent(noteId), {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+
+    if (!res.ok) {
+      // rollback UI
+      appState.notes.splice(index, 0, backupNote);
+      renderNotesUI();
+      updateDashboard();
+
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || 'Delete failed on server');
+      return;
     }
+
+    // success — keep the note removed (stay on Notes tab)
+    // optionally re-fetch to ensure server & UI in sync:
+    // await fetchAndRenderNotes();
+
+  } catch (err) {
+    // rollback UI
+    appState.notes.splice(index, 0, backupNote);
+    renderNotesUI();
+    updateDashboard();
+
+    console.error('Network error while deleting note:', err);
+    alert('Network error while deleting note. Try again.');
+  }
 }
 
 // ============================================

@@ -146,7 +146,7 @@
                     
                     <div class="subject-filter">
                         <label class="input-label">Filter by Subject:</label>
-                        <select id="notesFilter" class="filter-select" onchange="renderNotes()">
+                        <select id="notesFilter" class="filter-select" onchange="fetchAndRenderNotes()">
                             <option value="all">All Subjects</option>
                             <option value="MICROPROCESSORS AND ITS APPLICATIONS">MICROPROCESSORS AND ITS APPLICATIONS</option>
                             <option value="ELECTROMAGNETIC THEORY">ELECTROMAGNETIC THEORY</option>
@@ -221,7 +221,7 @@
             </select>
             
             <input type="file" id="noteFile" class="input-group">
-            <button class="btn-primary" onclick="uploadNote()">Upload</button>
+            <button class="btn-primary" onclick="uploadNoteBackend()">Upload</button>
         </div>
     </div>
 
