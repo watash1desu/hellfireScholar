@@ -23,7 +23,7 @@ app.use('/api/notes', notesRoutes);
 
 app.get('/ping', (req, res) => res.json({ ok: true, msg: 'Server is running' }));
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 const MONGO_URI = process.env.MONGO_URI;
 
 if (!MONGO_URI) {

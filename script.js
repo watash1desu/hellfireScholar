@@ -58,7 +58,7 @@ async function fetchAndRenderUser() {
   }
 
   try {
-    const res = await fetch('http://localhost:5000/api/auth/me', {
+    const res = await fetch('http://localhost:4000/api/auth/me', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -135,10 +135,10 @@ async function handleAuth() {
     if (!name) return alert('Please enter your name');
     if (!course) return alert('Please select your course');
 
-    endpoint = 'http://localhost:5000/api/auth/register';
+    endpoint = 'http://localhost:4000/api/auth/register';
     body = { name, email, password }; // backend expects name,email,password
   } else {
-    endpoint = 'http://localhost:5000/api/auth/login';
+    endpoint = 'http://localhost:4000/api/auth/login';
     body = { email, password };
   }
 
@@ -357,7 +357,7 @@ async function uploadNoteBackend() {
     const token = localStorage.getItem("token") || '';
     console.log('upload - token present?', !!token);
 
-    postResponse = await fetch("http://localhost:5000/api/notes/upload", {
+    postResponse = await fetch("http://localhost:4000/api/notes/upload", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${token}`
@@ -430,7 +430,7 @@ async function fetchAndRenderNotes(page = 1, limit = 50) {
 
 
   try {
-    const res = await fetch('http://localhost:5000/api/notes?' + params.toString());
+    const res = await fetch('http://localhost:4000/api/notes?' + params.toString());
     const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
@@ -449,7 +449,7 @@ async function fetchAndRenderNotes(page = 1, limit = 50) {
       category: n.category,
       fileName: n.originalName,
       uploadDate: n.createdAt ? new Date(n.createdAt).toLocaleDateString() : '',
-      url: (n.url && n.url.startsWith('/')) ? ('http://localhost:5000' + n.url) : n.url,
+      url: (n.url && n.url.startsWith('/')) ? ('http://localhost:4000' + n.url) : n.url,
       tags: n.tags || [],
       uploadedBy: n.uploadedBy || null
     }));
@@ -549,7 +549,7 @@ async function deleteNoteBackend(noteId) {
   const token = localStorage.getItem('token') || '';
 
   try {
-    const res = await fetch('http://localhost:5000/api/notes/' + encodeURIComponent(noteId), {
+    const res = await fetch('http://localhost:4000/api/notes/' + encodeURIComponent(noteId), {
       method: 'DELETE',
       headers: { 'Authorization': 'Bearer ' + token }
     });
