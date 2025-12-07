@@ -570,7 +570,13 @@ function renderSyllabus() {
           <span style="color: #f97316; font-weight: 700; font-size: 20px;">${subjectData.completed.length}/${subjectData.topics.length} Topics</span>
         </div>
         <div class="progress-bar" style="margin-top: 12px;">
-          <div class="progress-fill" style="width: ${(subjectData.completed.length / subjectData.topics.length) * 100}%"></div>
+          ${(() => {
+              const percent = (subjectData.completed.length / subjectData.topics.length) * 100;
+              let color = '#ef4444'; // red default
+              if (percent > 70) color = '#22c55e'; // green
+              else if (percent > 30) color = '#eab308'; // yellow
+              return `<div class="progress-fill" style="width: ${percent}%; background: ${color};"></div>`;
+          })()}
         </div>
       </div>
     </div>
