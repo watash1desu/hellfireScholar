@@ -341,8 +341,20 @@ header {
 .card-title {
     font-size: 20px;
     font-weight: 700;
-    margin-bottom: 16px;
-    color: #f1f5f9;
+    color: #e5e7eb;
+    margin-bottom: 12px;
+}
+
+/* Make section headings look like smaller card titles */
+.card-section-title {
+    font-size: 18px;        /* you can set 20px if you want EXACT same */
+    font-weight: 700;
+    color: #e5e7eb;
+    margin-top: 16px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .grid {

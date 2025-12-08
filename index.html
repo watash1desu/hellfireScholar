@@ -130,9 +130,33 @@
                     </div>
 
                     <div class="card">
-                        <h3 class="card-title">Attendance Alerts</h3>
-                        <div id="attendanceAlerts"></div>
+                        <!-- Main title of the card -->
+                        <h3 class="card-title">Alerts & Focus</h3>
+
+                        <!-- Sub-heading: Attendance Alerts -->
+                        <h3 class="card-section-title">Attendance Alerts</h3>
+                        <div id="attendanceAlerts" class="alert-panel"></div>
+
+                        <!-- Sub-heading: Task Alerts -->
+                        <h3 class="card-section-title">Task Alerts</h3>
+                        <div id="taskAlerts" class="alert-panel"></div>
+
+                        <!-- Sub-heading: Alerts & Reminders -->
+                        <h3 class="card-section-title">Alerts & Reminders</h3>
+                        <div id="reminderAlerts" class="alert-panel"></div>
+
+                        <!-- Sub-heading: Today's Focus -->
+                        <h3 class="card-section-title">
+                            Today&apos;s Focus
+                            <button id="todayFocusBtn"
+                                    class="btn-small"
+                                    onclick="showTodayFocus()">
+                                Show Today
+                            </button>
+                        </h3>
+                        <div id="todayFocus" class="alert-panel"></div>
                     </div>
+
                 </div>
 
                 <!-- Notes -->
