@@ -5,6 +5,7 @@ let appState = {
   currentUser: null,
   authMode: 'login',
   activeTab: 'dashboard',
+  currentCourse: null,
 
   // Predefined subjects
   subjects: ['MICROPROCESSORS AND ITS APPLICATIONS', 'ELECTROMAGNETIC THEORY', 'SIGNALS AND SYSTEMS', 'SOLID STATE DEVICES AND CIRCUITS'],
@@ -52,6 +53,187 @@ let appState = {
     }
   }
 };
+
+// Course-wise 4th semester subjects
+const courseSubjects = {
+  "Electronics and Communication Engineering": [
+    "VLSI TECHNOLOGY",
+    "DIGITAL COMMUNICATION",
+    "AUTOMATIC CONTROL SYSTEMS",
+    "ANTENNA AND WAVE PROPAGATION",
+    "MICROCONTROLLERS AND EMBEDDED SYSTEMS",
+    "MANAGEMENT CONCEPTS AND APPLICATIONS"
+  ],
+  "Electrical Engineering": [
+    "ELECTRICAL MACHINES-I",
+    "POWER ELECTRONICS-I",
+    "ELECTRICAL MEASUREMENT & MEASURING INSTRUMENTS",
+    "SIGNALS & SYSTEMS",
+    "DIGITAL ELECTRONICS",
+    "ENGINEERING ECONOMICS & INDUSTRIAL MANAGEMENT"
+  ]
+};
+
+// Units / topics for each subject (used in syllabus section)
+const syllabusData = {
+  "VLSI TECHNOLOGY": [
+    "Unit 1 – Introduction and basic fabrication steps",
+    "Unit 2 – Oxidation, diffusion, ion implantation",
+    "Unit 3 – Lithography and etching",
+    "Unit 4 – Metallization and interconnects",
+    "Unit 5 – CMOS process integration"
+  ],
+  "DIGITAL COMMUNICATION": [
+    "Unit 1 – Sampling and PCM",
+    "Unit 2 – Baseband digital transmission",
+    "Unit 3 – Passband digital modulation",
+    "Unit 4 – Error control coding basics",
+    "Unit 5 – Performance over noisy channels"
+  ],
+  "AUTOMATIC CONTROL SYSTEMS": [
+    "Unit 1 – Modelling of control systems",
+    "Unit 2 – Time domain analysis",
+    "Unit 3 – Root locus",
+    "Unit 4 – Frequency response",
+    "Unit 5 – State space analysis"
+  ],
+  "ANTENNA AND WAVE PROPAGATION": [
+    "Unit 1 – Antenna fundamentals",
+    "Unit 2 – Linear and array antennas",
+    "Unit 3 – Aperture and microstrip antennas",
+    "Unit 4 – Ground wave and sky wave propagation",
+    "Unit 5 – Space wave and tropospheric propagation"
+  ],
+  "MICROCONTROLLERS AND EMBEDDED SYSTEMS": [
+    "Unit 1 – Microcontroller architecture",
+    "Unit 2 – Instruction set and programming",
+    "Unit 3 – Timers, interrupts and I/O",
+    "Unit 4 – Serial communication interfaces",
+    "Unit 5 – Embedded system design basics"
+  ],
+  "MANAGEMENT CONCEPTS AND APPLICATIONS": [
+    "Unit 1 – Basics of management",
+    "Unit 2 – Planning and organizing",
+    "Unit 3 – Staffing and directing",
+    "Unit 4 – Controlling",
+    "Unit 5 – Modern management practices"
+  ],
+  "ELECTRICAL MACHINES-I": [
+    "Unit 1 – Magnetic circuits and transformers review",
+    "Unit 2 – DC machines basics",
+    "Unit 3 – DC motor characteristics and testing",
+    "Unit 4 – Three-phase induction motor",
+    "Unit 5 – Single-phase motors and applications"
+  ],
+  "POWER ELECTRONICS-I": [
+    "Unit 1 – Power semiconductor devices",
+    "Unit 2 – AC–DC converters (rectifiers)",
+    "Unit 3 – DC–DC converters (choppers)",
+    "Unit 4 – DC–AC inverters",
+    "Unit 5 – AC voltage controllers"
+  ],
+  "ELECTRICAL MEASUREMENT & MEASURING INSTRUMENTS": [
+    "Unit 1 – Measurement principles and errors",
+    "Unit 2 – Analog indicating instruments",
+    "Unit 3 – Bridges and potentiometers",
+    "Unit 4 – Instrument transformers",
+    "Unit 5 – Electronic measuring instruments"
+  ],
+  "SIGNALS & SYSTEMS": [
+    "Unit 1 – Continuous-time signals and systems",
+    "Unit 2 – Discrete-time signals and systems",
+    "Unit 3 – Fourier series and transforms",
+    "Unit 4 – Laplace and Z-transforms",
+    "Unit 5 – Sampling and reconstruction"
+  ],
+  "DIGITAL ELECTRONICS": [
+    "Unit 1 – Number systems and Boolean algebra",
+    "Unit 2 – Combinational logic design",
+    "Unit 3 – Sequential logic and flip-flops",
+    "Unit 4 – Counters and shift registers",
+    "Unit 5 – Logic families and memories"
+  ],
+  "ENGINEERING ECONOMICS & INDUSTRIAL MANAGEMENT": [
+    "Unit 1 – Basics of engineering economics",
+    "Unit 2 – Cost concepts and break-even analysis",
+    "Unit 3 – Time value of money",
+    "Unit 4 – Project evaluation techniques",
+    "Unit 5 – Industrial management fundamentals"
+  ]
+};
+
+function getCurrentCourse() {
+  return appState.currentCourse || localStorage.getItem('course') || 'Electronics and Communication Engineering';
+}
+
+function getSubjectSelectionStorageKey(course) {
+  return `syllabusSubjects_${course}`;
+}
+
+function loadSelectedSubjectsForCourse(course) {
+  const key = getSubjectSelectionStorageKey(course);
+  const saved = localStorage.getItem(key);
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length) return parsed;
+    } catch (e) {}
+  }
+  return courseSubjects[course] ? [...courseSubjects[course]] : [];
+}
+
+function saveSelectedSubjectsForCourse(course, subjects) {
+  const key = getSubjectSelectionStorageKey(course);
+  localStorage.setItem(key, JSON.stringify(subjects));
+}
+
+function getCompletedTopicsKey(subject) {
+  return `syllabusCompleted_${subject}`;
+}
+
+function loadCompletedTopics(subject) {
+  const key = getCompletedTopicsKey(subject);
+  const saved = localStorage.getItem(key);
+  if (!saved) return [];
+  try {
+    const parsed = JSON.parse(saved);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveCompletedTopics(subject, topics) {
+  const key = getCompletedTopicsKey(subject);
+  localStorage.setItem(key, JSON.stringify(topics));
+}
+
+function populateSubjectDropdowns() {
+  const course = getCurrentCourse();
+  const subjects = loadSelectedSubjectsForCourse(course);
+
+  const uploadSelect = document.getElementById('noteSubject');
+  if (uploadSelect) {
+    uploadSelect.innerHTML = '<option value="">Select Subject</option>' +
+      subjects.map(s => `<option value="${s}">${s}</option>`).join('');
+  }
+
+  const notesFilter = document.getElementById('notesFilter');
+  if (notesFilter) {
+    const previous = notesFilter.value;
+    notesFilter.innerHTML = '<option value="all">All Subjects</option>' +
+      subjects.map(s => `<option value="${s}">${s}</option>`).join('');
+    if (previous && Array.from(notesFilter.options).some(o => o.value === previous)) {
+      notesFilter.value = previous;
+    }
+  }
+
+  const assignmentSubject = document.getElementById('assignmentSubject');
+  if (assignmentSubject) {
+    assignmentSubject.innerHTML = '<option value="">Select Subject</option>' +
+      subjects.map(s => `<option value="${s}">${s}</option>`).join('');
+  }
+}
 
 async function fetchAndRenderUser() {
   const token = localStorage.getItem('token');
@@ -132,6 +314,7 @@ async function handleAuth() {
   if (appState.authMode === 'register') {
     if (!name) return alert('Please enter your name');
     if (!course) return alert('Please select your course');
+    localStorage.setItem('course', course);
 
     endpoint = API_BASE + '/api/auth/register';
     body = { name, email, password };
@@ -162,6 +345,9 @@ async function handleAuth() {
       localStorage.setItem('userId', data.user.id || data.user._id || '');
     }
 
+    const savedCourse = localStorage.getItem('course') || course || 'Electronics and Communication Engineering';
+    appState.currentCourse = savedCourse;
+
     document.getElementById('userName').textContent = (data.user && data.user.name) ? data.user.name : 'Student';
 
     document.getElementById('authScreen').style.display = 'none';
@@ -171,7 +357,7 @@ async function handleAuth() {
     await fetchAndRenderNotes();
 
     updateDashboard();
-    renderSyllabus();
+    initSyllabus();
     renderAssignments();
     renderAttendance();
 
@@ -186,6 +372,7 @@ function logout() {
   localStorage.removeItem('token');
   localStorage.removeItem('userName');
   localStorage.removeItem('userId');
+  localStorage.removeItem('course');
 
   const authScreen = document.getElementById('authScreen');
   const appScreen = document.getElementById('appScreen');
@@ -258,65 +445,85 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // DASHBOARD FUNCTIONS
 function updateDashboard() {
-    // basic stats
-    document.getElementById('totalNotes').textContent = appState.notes.length;
-    document.getElementById('pendingTasks').textContent =
-        appState.assignments.filter(a => a.status === 'pending').length;
+  // basic stats
+  document.getElementById('totalNotes').textContent = appState.notes.length;
+  document.getElementById('pendingTasks').textContent =
+    appState.assignments.filter(a => a.status === 'pending').length;
 
-    // average attendance
-    let totalAttendance = 0;
-    let subjectsWithData = 0;
+  // average attendance
+  let totalAttendance = 0;
+  let subjectsWithData = 0;
 
-    appState.subjects.forEach(subject => {
-        const att = appState.attendance[subject];
-        if (att.total > 0) {
-            totalAttendance += (att.attended / att.total) * 100;
-            subjectsWithData++;
-        }
-    });
-
-    if (subjectsWithData > 0) {
-        document.getElementById('avgAttendance').textContent =
-            Math.round(totalAttendance / subjectsWithData) + '%';
-    } else {
-        document.getElementById('avgAttendance').textContent = '--';
+  // use the active subjects for the current course
+  const activeSubjects = loadSelectedSubjectsForCourse(getCurrentCourse());
+  activeSubjects.forEach(subject => {
+    // make sure attendance object exists for this subject
+    if (!appState.attendance[subject]) {
+      appState.attendance[subject] = { attended: 0, total: 0, required: 75 };
     }
 
-    // panels on the dashboard
-    renderAttendanceAlerts();
-    renderTaskAlerts();
-    renderReminderAlerts();
-    showTodayFocus(); // optional auto-refresh
-     // NEW
+    const att = appState.attendance[subject];
+    if (att.total > 0) {
+      totalAttendance += (att.attended / att.total) * 100;
+      subjectsWithData++;
+    }
+  });
+
+  if (subjectsWithData > 0) {
+    document.getElementById('avgAttendance').textContent =
+      Math.round(totalAttendance / subjectsWithData) + '%';
+  } else {
+    document.getElementById('avgAttendance').textContent = '--';
+  }
+
+  // panels on the dashboard
+  renderAttendanceAlerts();
+  renderTaskAlerts();
+  renderReminderAlerts();
+  showTodayFocus(); // optional auto-refresh
 }
 
 function renderAttendanceAlerts() {
   const alertsContainer = document.getElementById('attendanceAlerts');
+  if (!alertsContainer) return;
 
-  const shortAttendance = appState.subjects.filter(subject => {
+  const activeSubjects = loadSelectedSubjectsForCourse(getCurrentCourse());
+
+  const shortAttendance = activeSubjects.filter(subject => {
+    // ensure attendance entry exists
+    if (!appState.attendance[subject]) {
+      appState.attendance[subject] = { attended: 0, total: 0, required: 75 };
+    }
     const att = appState.attendance[subject];
     return att.total > 0 && (att.attended / att.total) * 100 < att.required;
   });
 
   if (shortAttendance.length === 0) {
-    alertsContainer.innerHTML = '<p style="color: #10b981;">All subjects meeting attendance requirements! 🎉</p>';
+    alertsContainer.innerHTML =
+      '<p style="color: #10b981;">All subjects meeting attendance requirements! 🎉</p>';
     return;
   }
 
-  alertsContainer.innerHTML = shortAttendance.map(subject => {
-    const att = appState.attendance[subject];
-    const percentage = ((att.attended / att.total) * 100).toFixed(1);
-    const needed = calculateClassesNeeded(att.attended, att.total, att.required);
-    return `
-      <div class="alert">
-        <div class="alert-icon">⚠️</div>
-        <div class="alert-content">
-          <div class="alert-title">${subject}</div>
-          <div class="alert-text">Current: ${percentage}% | Need ${needed} more classes</div>
+  alertsContainer.innerHTML = shortAttendance
+    .map(subject => {
+      const att = appState.attendance[subject];
+      const percentage = ((att.attended / att.total) * 100).toFixed(1);
+      const needed = calculateClassesNeeded(
+        att.attended,
+        att.total,
+        att.required
+      );
+      return `
+        <div class="alert">
+          <div class="alert-icon">⚠️</div>
+          <div class="alert-content">
+            <div class="alert-title">${subject}</div>
+            <div class="alert-text">Current: ${percentage}% | Need ${needed} more classes</div>
+          </div>
         </div>
-      </div>
-    `;
-  }).join('');
+      `;
+    })
+    .join('');
 }
 // TASK ALERTS – show which tasks are pending
 function renderTaskAlerts() {
@@ -729,38 +936,164 @@ async function deleteNoteBackend(noteId) {
 }
 
 // SYLLABUS FUNCTIONS
+function populateSyllabusSubjects() {
+  const select = document.getElementById('syllabusSubjectSelect');
+  if (!select) return;
+
+  const course = getCurrentCourse();
+  const selectedSubjects = loadSelectedSubjectsForCourse(course);
+
+  select.innerHTML = '';
+
+  if (!selectedSubjects.length) {
+    const opt = document.createElement('option');
+    opt.value = '';
+    opt.textContent = 'No subjects configured';
+    select.appendChild(opt);
+    return;
+  }
+
+  selectedSubjects.forEach(sub => {
+    const opt = document.createElement('option');
+    opt.value = sub;
+    opt.textContent = sub;
+    select.appendChild(opt);
+  });
+
+   if (!select.value && selectedSubjects.length > 0) {
+    select.value = selectedSubjects[0];
+  }
+  populateSubjectDropdowns();
+}
+
+function openSubjectManager() {
+  const course = getCurrentCourse();
+  const subjects = courseSubjects[course] || [];
+  if (!subjects.length) {
+    alert('No subjects configured for this course yet.');
+    return;
+  }
+
+  const currentSelection = loadSelectedSubjectsForCourse(course);
+  const modal = document.getElementById('manageSubjectsModal');
+  const list = document.getElementById('manageSubjectsList');
+  const label = document.getElementById('manageSubjectsCourseLabel');
+
+  if (!modal || !list || !label) return;
+
+  label.textContent = 'Available subjects for ' + course + ' (4th Sem):';
+
+  list.innerHTML = subjects
+    .map(subject => {
+      const checked = currentSelection.includes(subject) ? 'checked' : '';
+      return `
+        <label class="manage-subject-row">
+          <input type="checkbox" value="${subject.replace(/"/g, '&quot;')}" ${checked}>
+          <span>${subject}</span>
+        </label>
+      `;
+    })
+    .join('');
+
+  modal.style.display = 'flex';
+}
+
+function closeManageSubjectsModal() {
+  const modal = document.getElementById('manageSubjectsModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function saveManageSubjects() {
+  const course = getCurrentCourse();
+  const modal = document.getElementById('manageSubjectsModal');
+  const list = document.getElementById('manageSubjectsList');
+  if (!modal || !list) return;
+
+  const checked = Array.from(list.querySelectorAll('input[type="checkbox"]:checked')).map(i => i.value);
+  if (!checked.length) {
+    alert('At least one subject must be selected.');
+    return;
+  }
+
+  saveSelectedSubjectsForCourse(course, checked);
+  closeManageSubjectsModal();
+  populateSyllabusSubjects();
+  populateSubjectDropdowns();
+  renderSyllabus();
+  renderAttendance();
+  updateDashboard();
+}
+
+function initSyllabus() {
+  const savedCourse = localStorage.getItem('course');
+  if (!appState.currentCourse) {
+    appState.currentCourse = savedCourse || 'Electronics and Communication Engineering';
+  }
+  populateSyllabusSubjects();
+  populateSubjectDropdowns();
+  renderSyllabus();
+  renderAttendance();
+  updateDashboard();
+}
+
 function renderSyllabus() {
   const syllabusContainer = document.getElementById('syllabusContainer');
-  const selectedSubject = document.getElementById('syllabusSubjectSelect').value;
-  const subjectData = appState.syllabus[selectedSubject];
+  const select = document.getElementById('syllabusSubjectSelect');
+  if (!syllabusContainer || !select) return;
+
+  const selectedSubject = select.value;
+  if (!selectedSubject) {
+    syllabusContainer.innerHTML = '<p style="color:#94a3b8;">Please select a subject.</p>';
+    return;
+  }
+
+  const topics = syllabusData[selectedSubject];
+  if (!topics || !topics.length) {
+    syllabusContainer.innerHTML = `<p style="color:#94a3b8;">No syllabus data found for ${selectedSubject}.</p>`;
+    return;
+  }
+
+  const completedTopics = loadCompletedTopics(selectedSubject);
+  const completedCount = completedTopics.length;
+  const totalCount = topics.length;
+  const percent = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+
+  let color = '#ef4444'; // red
+  if (percent > 70) color = '#22c55e'; // green
+  else if (percent > 30) color = '#eab308'; // yellow
 
   syllabusContainer.innerHTML = `
     <div class="card">
-      <h3 class="card-title">${selectedSubject} - Topics</h3>
+      <h3 class="card-title">${selectedSubject} - Units</h3>
       <div style="display: grid; gap: 12px;">
-        ${subjectData.topics.map((topic, index) => {
-          const isCompleted = subjectData.completed.includes(topic);
-          return `
-            <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: ${isCompleted ? 'rgba(16, 185, 129, 0.1)' : '#0f172a'}; border-radius: 8px; border: 1px solid ${isCompleted ? '#10b981' : '#334155'};">
-              <input type="checkbox" id="topic-${index}" ${isCompleted ? 'checked' : ''} onchange="toggleTopic('${selectedSubject}', '${topic}')" style="width: 20px; height: 20px; cursor: pointer;" />
-              <label for="topic-${index}" style="flex: 1; cursor: pointer; color: ${isCompleted ? '#34d399' : '#e2e8f0'}; font-weight: ${isCompleted ? '600' : '400'};">${topic}</label>
-            </div>
-          `;
-        }).join('')}
+        ${topics
+          .map((topic, index) => {
+            const isCompleted = completedTopics.includes(topic);
+            return `
+              <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: ${
+                isCompleted ? 'rgba(16, 185, 129, 0.1)' : '#0f172a'
+              }; border-radius: 8px; border: 1px solid ${isCompleted ? '#10b981' : '#334155'};">
+                <input type="checkbox"
+                  id="topic-${index}"
+                  ${isCompleted ? 'checked' : ''}
+                  onchange="toggleTopic('${selectedSubject.replace(/'/g, "\\'")}', '${topic.replace(/'/g, "\\'")}')"
+                  style="width: 20px; height: 20px; cursor: pointer;"
+                />
+                <label for="topic-${index}" style="flex: 1; cursor: pointer; color: ${
+                  isCompleted ? '#34d399' : '#e2e8f0'
+                }; font-weight: ${isCompleted ? '600' : '400'};">${topic}</label>
+              </div>
+            `;
+          })
+          .join('')}
       </div>
       <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #334155;">
-        <div style="display: flex; justify-content: between; align-items: center;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
           <span style="color: #94a3b8;">Progress:</span>
-          <span style="color: #f97316; font-weight: 700; font-size: 20px;">${subjectData.completed.length}/${subjectData.topics.length} Topics</span>
+          <span style="color: #f97316; font-weight: 700; font-size: 20px;">${completedCount}/${totalCount} Units</span>
         </div>
         <div class="progress-bar" style="margin-top: 12px;">
-          ${(() => {
-              const percent = (subjectData.completed.length / subjectData.topics.length) * 100;
-              let color = '#ef4444'; // red default
-              if (percent > 70) color = '#22c55e'; // green
-              else if (percent > 30) color = '#eab308'; // yellow
-              return `<div class="progress-fill" style="width: ${percent}%; background: ${color};"></div>`;
-          })()}
+          <div class="progress-fill" style="width: ${percent}%; background: ${color};"></div>
         </div>
       </div>
     </div>
@@ -768,11 +1101,40 @@ function renderSyllabus() {
 }
 
 function toggleTopic(subject, topic) {
-  const subjectData = appState.syllabus[subject];
-  const index = subjectData.completed.indexOf(topic);
-  if (index > -1) subjectData.completed.splice(index, 1);
-  else subjectData.completed.push(topic);
+  const topics = loadCompletedTopics(subject);
+  const idx = topics.indexOf(topic);
+  if (idx > -1) topics.splice(idx, 1);
+  else topics.push(topic);
+  saveCompletedTopics(subject, topics);
   renderSyllabus();
+}
+
+function addCustomSubject() {
+  const course = getCurrentCourse();
+  let subjects = loadSelectedSubjectsForCourse(course);
+
+  let name = prompt('Enter custom subject name:');
+  if (!name) return;
+  name = name.trim();
+  if (!name) return;
+
+  if (subjects.includes(name)) {
+    alert('Subject already exists in your list.');
+    return;
+  }
+
+  subjects.push(name);
+  saveSelectedSubjectsForCourse(course, subjects);
+
+  if (!appState.attendance[name]) {
+    appState.attendance[name] = { attended: 0, total: 0, required: 75 };
+  }
+
+  populateSyllabusSubjects();
+  populateSubjectDropdowns();
+  renderSyllabus();
+  renderAttendance();
+  updateDashboard();
 }
 
 // ASSIGNMENTS FUNCTIONS
@@ -847,6 +1209,9 @@ function deleteAssignment(assignmentId) {
 
 // ATTENDANCE FUNCTIONS
 function markAttendance(subject, status) {
+  if (!appState.attendance[subject]) {
+    appState.attendance[subject] = { attended: 0, total: 0, required: 75 };
+  }
   const att = appState.attendance[subject];
   att.total++;
   if (status === 'present') att.attended++;
@@ -862,7 +1227,11 @@ function calculateClassesNeeded(attended, total, required) {
 
 function renderAttendance() {
   const attendanceContainer = document.getElementById('attendanceContainer');
-  attendanceContainer.innerHTML = appState.subjects.map(subject => {
+  const activeSubjects = loadSelectedSubjectsForCourse(getCurrentCourse());
+  attendanceContainer.innerHTML = activeSubjects.map(subject => {
+    if (!appState.attendance[subject]) {
+      appState.attendance[subject] = { attended: 0, total: 0, required: 75 };
+    }
     const att = appState.attendance[subject];
     const percentage = att.total > 0 ? ((att.attended / att.total) * 100).toFixed(1) : '--';
     const isShort = att.total > 0 && (att.attended / att.total) * 100 < att.required;
@@ -902,7 +1271,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     appScreen.style.display = 'block';
     updateDashboard();
     await fetchAndRenderNotes();
-    renderSyllabus();
+    initSyllabus();
     renderAssignments();
     renderAttendance();
   }

@@ -697,3 +697,59 @@ header {
 .note-tags {
   display: none;
 }
+
+/* Manage Subjects Row Styles */
+.manage-subject-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    transition: background 0.3s, border-color 0.3s;
+}
+.manage-subject-row:hover {
+    background: #1e293b;
+    border-color: #475569;
+}
+.manage-subject-row input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+.manage-subject-row span {
+    font-size: 15px;
+    font-weight: 600;
+    color: #e2e8f0;
+}
+
+/* Modal Action Buttons */
+.btn-cancel {
+    background: #7f1d1d;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+.btn-cancel:hover {
+    background: #b91c1c;
+    box-shadow: 0 0 10px rgba(239,68,68,0.4);
+}
+.btn-save {
+    background: #065f46;
+    color: white;
+    padding: 10px 24px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 700;
+    transition: all 0.3s;
+}
+.btn-save:hover {
+    background: #0d9488;
+    box-shadow: 0 0 12px rgba(16,185,129,0.4);
+}

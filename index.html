@@ -29,6 +29,7 @@
                     <option value="">Select your course</option>
                     <option value="Computer Science Engineering">Computer Science Engineering</option>
                     <option value="Electronics and Communication Engineering">Electronics and Communication Engineering</option>
+                    <option value="Electrical Engineering">Electrical Engineering</option>
                     <option value="Information Technology">Information Technology</option>
                     <option value="Mechanical Engineering">Mechanical Engineering</option>
                     <option value="Civil Engineering">Civil Engineering</option>
@@ -172,10 +173,6 @@
                         <label class="input-label">Filter by Subject:</label>
                         <select id="notesFilter" class="filter-select" onchange="fetchAndRenderNotes()">
                             <option value="all">All Subjects</option>
-                            <option value="MICROPROCESSORS AND ITS APPLICATIONS">MICROPROCESSORS AND ITS APPLICATIONS</option>
-                            <option value="ELECTROMAGNETIC THEORY">ELECTROMAGNETIC THEORY</option>
-                            <option value="SIGNALS AND SYSTEMS">SIGNALS AND SYSTEMS</option>
-                            <option value="SOLID STATE DEVICES AND CIRCUITS">SOLID STATE DEVICES AND CIRCUITS</option>
                         </select>
                     </div>
                     
@@ -184,18 +181,25 @@
 
                 <!-- Syllabus -->
                 <div id="syllabus" class="content-section">
-                    <div class="section-header">
-                        <h2 class="section-title">Syllabus Progress</h2>
-                        <div class="subject-selector">
-                            <label class="input-label">Select Subject:</label>
-                            <select id="syllabusSubjectSelect" class="filter-select" onchange="renderSyllabus()">
-                                <option value="MICROPROCESSORS AND ITS APPLICATIONS">MICROPROCESSORS AND ITS APPLICATIONS</option>
-                                <option value="ELECTROMAGNETIC THEORY">ELECTROMAGNETIC THEORY</option>
-                                <option value="SIGNALS AND SYSTEMS">SIGNALS AND SYSTEMS</option>
-                                <option value="SOLID STATE DEVICES AND CIRCUITS">SOLID STATE DEVICES AND CIRCUITS</option>
-                            </select>
-                        </div>
-                    </div>
+                 <div class="section-header">
+    <h2 class="section-title">Syllabus Progress</h2>
+    <div class="subject-selector">
+        <label class="input-label">Select Subject:</label>
+        <select id="syllabusSubjectSelect" class="filter-select" onchange="renderSyllabus()">
+            <option value="">Select Subject</option>
+        </select>
+    </div>
+    <div style="display:flex; gap:8px;">
+        <button class="btn-add" onclick="openSubjectManager()">
+            <span>⚙️</span>
+            <span>Manage Subjects</span>
+        </button>
+        <button class="btn-add" onclick="addCustomSubject()">
+            <span>+</span>
+            <span>Custom Subject</span>
+        </button>
+    </div>
+</div>
                     <div id="syllabusContainer"></div>
                 </div>
 
@@ -231,10 +235,7 @@
             
             <label class="input-label">Subject</label>
             <select id="noteSubject" class="input-group">
-                <option value="MICROPROCESSORS AND ITS APPLICATIONS">MICROPROCESSORS AND ITS APPLICATIONS</option>
-                <option value="ELECTROMAGNETIC THEORY">ELECTROMAGNETIC THEORY</option>
-                <option value="SIGNALS AND SYSTEMS">SIGNALS AND SYSTEMS</option>
-                <option value="SOLID STATE DEVICES AND CIRCUITS">SOLID STATE DEVICES AND CIRCUITS</option>
+                <option value="">Select Subject</option>
             </select>
             
             <label class="input-label">Category</label>
@@ -260,10 +261,7 @@
             
             <label class="input-label">Subject</label>
             <select id="assignmentSubject" class="input-group">
-                <option value="MICROPROCESSORS AND ITS APPLICATIONS">MICROPROCESSORS AND ITS APPLICATIONS</option>
-                <option value="ELECTROMAGNETIC THEORY">ELECTROMAGNETIC THEORY</option>
-                <option value="SIGNALS AND SYSTEMS">SIGNALS AND SYSTEMS</option>
-                <option value="SOLID STATE DEVICES AND CIRCUITS">SOLID STATE DEVICES AND CIRCUITS</option>
+                <option value="">Select Subject</option>
             </select>
             
             <label class="input-label">Deadline</label>
@@ -284,6 +282,21 @@
         </div>
     </div>
 
+    <!-- Manage Subjects Modal -->
+    <div id="manageSubjectsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Manage Subjects</h3>
+                <button class="btn-close" onclick="closeManageSubjectsModal()">×</button>
+            </div>
+            <p class="input-label" id="manageSubjectsCourseLabel"></p>
+            <div id="manageSubjectsList" style="display:flex; flex-direction:column; gap:8px; margin-top:8px;"></div>
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+                <button class="btn-add" onclick="closeManageSubjectsModal()">Cancel</button>
+                <button class="btn-primary" onclick="saveManageSubjects()">Save</button>
+            </div>
+        </div>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>
